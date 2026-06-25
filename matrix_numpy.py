@@ -1,9 +1,9 @@
-import numpy as np
+import numpy as np  # подключаем библиотеку нампай для быстрых расчетов
 
 class Matrix:
     def __init__(self, data):
         # преобразуем входные данные в массив numpy
-        self.data = np.array(data, dtype=float)
+        self.data = np.array(data, dtype=float)  # превращаем обычный список в мощный массив нампай
         if not all(len(row) == len(data[0]) for row in data):
             raise ValueError("Все строки матрицы должны быть одинаковой длины")
 
@@ -22,7 +22,7 @@ class Matrix:
     def multiply(self, other): # круто умножение через try except
         # матричное умножение через оператор @
         try:
-            result_data = self.data @ other.data
+            result_data = self.data @ other.data  # специальный символ для быстрого умножения матриц в нампай
             return Matrix(data=np.round(result_data, 4)) # в скобках сначала объект, потом число округления, у нас 4 ща
         except ValueError:
             raise ValueError(f"несовместимые размеры для умножения: {self.cols} != {other.rows}")
