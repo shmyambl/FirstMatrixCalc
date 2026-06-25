@@ -30,10 +30,10 @@ pytest -v
 
 ### Использование в своем коде
 ```python
-from matrix_scratch import Matrix # Создаём экземпляр класса Matrix.
+from matrix_scratch import Matrix
 
-m1 = Matrix([[1, 2], [3, 4]])
-m2 = Matrix([[5, 6], [7, 8]])
+m1 = Matrix([[1, 2], [3, 4]]) # Создаём экземпляр класса Matrix.
+m2 = Matrix([[5, 6], [7, 8]]) # Создаём второй экземпляр класса Matrix.
 
 print(m1.multiply(m2).data)
 print(m1.divide(m2).data)
@@ -43,7 +43,7 @@ print(m1.transpose().data)
 
 ## Технические особенности
 *   Все демонстрационные блоки в модулях защищены `if __name__ == "__main__":`.
-     Демонстрационный код в обоих модулях защищён if __name__ == "__main__": - импорт модулей не производит побочного вывода.
+     Импорт модулей не производит побочного вывода.
 ```python
 class Matrix:
     # полезная логика
