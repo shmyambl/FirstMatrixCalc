@@ -1,5 +1,5 @@
 
-#  Matrix Calculator (Scratch & NumPy)
+#  Matrix Calculator (Pure python & NumPy)
 
 Этот проект представляет собой учебный матричный калькулятор с двумя реализациями: на чистом Python и на NumPy.
 
