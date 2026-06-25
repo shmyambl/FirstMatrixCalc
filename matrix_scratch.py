@@ -1,5 +1,5 @@
-class Matrix:
-    def __init__(self, data):
+class Matrix:  # создаем класс для работы с матрицами на чистом питоне
+    def __init__(self, data):  # тут мы принимаем данные и проверяем их на ошибки
         # проверяем, чтобы все строки были одинаковой длины
         if not all(len(row) == len(data[0]) for row in data):
             raise ValueError("Все строки матрицы должны быть одинаковой длины")
@@ -11,7 +11,7 @@ class Matrix:
         return "\n".join(["[" + ", ".join(map(str, row)) + "]" for row in self.data])
 
 
-    def transpose(self):
+    def transpose(self):  # функция которая переворачивает матрицу на бок
         new_data = [[0 for _ in range(self.rows)] for _ in range(self.cols)]
         for i in range(self.cols):
           for j in range(self.rows):
@@ -20,7 +20,7 @@ class Matrix:
 
 
 
-    def multiply(self,other):
+    def multiply(self,other):  # умножаем одну матрицу на другую по правилам математики
       if self.cols != other.rows:
         raise ValueError("Несовместимые матрицы")
       # важно что в у множении новый матрчиный объект будет в длинне cols  второго множителя, а в числу rows по первому
