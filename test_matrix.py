@@ -44,7 +44,7 @@ class TestMatrixOperations:
         matrix_1 = MatrixClass(m1)
         matrix_2 = MatrixClass(m2)
         result = matrix_1.divide(matrix_2)
-        
+
         res_list = to_list(result.data)
         for i in range(len(expected)):
             assert res_list[i] == pytest.approx(expected[i])
@@ -62,12 +62,9 @@ class TestMatrixOperations:
         m2 = [[1, 2], [2, 4]]
         matrix_1 = MatrixClass(m1)
         matrix_2 = MatrixClass(m2)
-        if MatrixClass.__name__ == 'NumpyMatrix':
-            with pytest.raises((ValueError, np.linalg.LinAlgError)):
-                matrix_1.divide(matrix_2)
-        else:
-            with pytest.raises(ValueError):
-                matrix_1.divide(matrix_2)
+        # Теперь требуем строго ValueError, так как оба класса должны его выбрасывать
+        with pytest.raises(ValueError):
+            matrix_1.divide(matrix_2)
 
     def test_init_uneven_rows(self, MatrixClass):
         data = [[1, 2, 3], [4, 5]]
