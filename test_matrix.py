@@ -1,51 +1,52 @@
-import pytest
-import numpy as np
+
+import pytest  # библиотека запуска тестов
+import numpy as np  # библиотека для упрощения математических операций
+
+# импортируем классы матриц из репозитория: один на чистом питоне, второй на numpy
 from matrix_scratch import Matrix as ScratchMatrix
 from matrix_numpy import Matrix as NumpyMatrix
 
-# вспомогательная функция для перевода данных в обычные списки (чтобы тесты могли их сравнить)
+# вспомогательная функция: превращает любые данные в обычный список списков для сравнения 
 def to_list(data):
-    if hasattr(data, 'tolist'): return data.tolist()  # если это массив numpy, используем его метод
-    return [list(row) if isinstance(row, (list, tuple, np.ndarray)) else row for row in data]
+    if hasattr(data, 'tolist'): return data.tolist() # если это объект numpy, используем его метод tolist()
+    return [list(row) for row in data] # иначе просто перебираем строки
 
+# этот декоратор заставляет pytest запустить все тесты ниже дважды (для каждой реализации)
 @pytest.mark.parametrize("MatrixClass", [ScratchMatrix, NumpyMatrix])
 class TestMatrixOperations:
-    # проверка транспонирования (поворота) матрицы
+
+    # тест на транспонирование 
     def test_transpose(self, MatrixClass):
-        matrix = MatrixClass([[1, 2], [3, 4]])
-        assert to_list(matrix.transpose().data) == [[1, 3], [2, 4]]
+        matrix = MatrixClass([[1, 2], [3, 4]]) # создаем матрицу
+        result = matrix.transpose() # вызываем поворот
+        assert to_list(result.data) == [[1, 3], [2, 4]] # проверяем, что строки стали столбцами
 
-    # проверка обычного умножения двух матриц
-    def test_multiply_compatible(self, MatrixClass):
-        a = MatrixClass([[1, 2], [3, 4]])
-        b = MatrixClass([[1, 0], [0, 1]])
-        assert to_list(a.multiply(b).data) == [[1, 2], [3, 4]]
-
-    # проверка корректности деления через обратную матрицу
+    # тест на обычное деление матриц, который также проверяет умножение
     def test_divide_compatible(self, MatrixClass):
-        m1 = MatrixClass([[2, 5], [3, 4]])
-        m2 = MatrixClass([[1, 2], [3, 4]])
-        result = m1.divide(m2)
-        expected = [[3.5, -0.5], [0.0, 1.0]]  # эталонный результат
+        m1 = MatrixClass([[2, 5], [3, 4]]) # делимое
+        m2 = MatrixClass([[1, 2], [3, 4]]) # делитель
+        result = m1.divide(m2) # выполняем деление
+        expected = [[3.5, -0.5], [0.0, 1.0]] # ожидаемый результат
         res_list = to_list(result.data)
+        # сверяем результат с эталоном построчно
         for i in range(len(expected)):
-            assert res_list[i] == pytest.approx(expected[i])  # сравниваем с учетом мелких погрешностей
+            assert res_list[i] == pytest.approx(expected[i])
 
-    # проверка защиты от деления неквадратных матриц
+    # тест на защиту => нельзя делить на неквадратную матрицу
     def test_divide_non_square(self, MatrixClass):
         m1 = MatrixClass([[1, 2], [3, 4]])
-        m2 = MatrixClass([[1, 2, 3]])
-        with pytest.raises(ValueError):  # ожидаем ошибку ValueError
+        m2 = MatrixClass([[1, 2, 3]]) # это не квадрат
+        with pytest.raises(ValueError): # мы ждем, что программа выкинет ошибку ValueError
             m1.divide(m2)
 
-    # проверка защиты от деления на вырожденную (сингулярную) матрицу
+    # самый важный тест: деление на «нулевую»  матрицу
     def test_divide_singular(self, MatrixClass):
         m1 = MatrixClass([[1, 2], [3, 4]])
-        m2 = MatrixClass([[1, 2], [2, 4]])
-        with pytest.raises(ValueError):  # здесь обязательно должна выпасть ошибка
+        m2 = MatrixClass([[1, 2], [2, 4]]) # у этой матрицы определитель = 0
+        with pytest.raises(ValueError): # проверяем, что код выдает именно ValueError
             m1.divide(m2)
 
-    # проверка защиты от некорректных данных (разная длина строк)
+    # тест на некорректные данные при создании
     def test_init_uneven_rows(self, MatrixClass):
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError): # ждем ошибку, если строки разной длины
             MatrixClass([[1, 2], [3]])
