@@ -3,7 +3,7 @@ import numpy as np
 from matrix_scratch import Matrix as ScratchMatrix
 from matrix_numpy import Matrix as NumpyMatrix
 
-# вспомогательная функция для перевода данных в обычные списки в среде numpy
+# вспомогательная функция для перевода данных в обычные списки (чтобы тесты могли их сравнить)
 def to_list(data):
     if hasattr(data, 'tolist'): return data.tolist()  # если это массив numpy, используем его метод
     return [list(row) if isinstance(row, (list, tuple, np.ndarray)) else row for row in data]
