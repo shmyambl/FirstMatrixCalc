@@ -1,52 +1,76 @@
+import pytest  # подключаем библиотеку для удобного запуска проверок
+import numpy as np  # берем нампай для работы с массивами
 
-import pytest  # библиотека для удобного запуска тестов
-import numpy as np  # библиотека для математических операций
-
-# импортируем ваши классы матриц: один на чистом питоне, второй на numpy
+# импортируем ваши классы матриц из созданных файлов
 from matrix_scratch import Matrix as ScratchMatrix
 from matrix_numpy import Matrix as NumpyMatrix
 
-# вспомогательная функция: превращает любые данные в обычный список списков для сравнения
+# функция-помощник: переводит любые данные в обычные списки питона для сравнения
 def to_list(data):
-    if hasattr(data, 'tolist'): return data.tolist() # если это объект numpy, используем его метод tolist()
-    return [list(row) for row in data] # иначе просто перебираем строки
+    if hasattr(data, 'tolist'):  # если это массив numpy, используем его встроенный метод
+        return data.tolist()
+    # если это список, убеждаемся, что вложенные строки тоже стали списками
+    return [list(row) if isinstance(row, (list, tuple, np.ndarray)) else row for row in data]
 
-# этот декоратор заставляет pytest запустить все тесты ниже дважды (для каждой реализации)
+# декоратор заставляет pytest прогнать все тесты ниже дважды: для обычной матрицы и для numpy
 @pytest.mark.parametrize("MatrixClass", [ScratchMatrix, NumpyMatrix])
 class TestMatrixOperations:
 
-    # тест на транспонирование (поворот матрицы)
     def test_transpose(self, MatrixClass):
-        matrix = MatrixClass([[1, 2], [3, 4]]) # создаем матрицу
-        result = matrix.transpose() # вызываем поворот
-        assert to_list(result.data) == [[1, 3], [2, 4]] # проверяем, что строки стали столбцами
+        data = [[1, 2, 3], [1, 2, 3]]  # берем исходную матрицу
+        expected = [[1, 1], [2, 2], [3, 3]]  # так она должна выглядеть после поворота
+        matrix = MatrixClass(data)  # создаем объект
+        result = matrix.transpose()  # переворачиваем
+        assert to_list(result.data) == expected  # сверяем результат с ожиданием
 
-    # тест на обычное деление матриц
+    def test_multiply_compatible(self, MatrixClass):
+        a = [[1, 2, 3], [1, 2, 3]]  # первая матрица
+        b = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]  # вторая матрица
+        expected = [[30, 36, 42], [30, 36, 42]]  # результат умножения
+        matrix_a = MatrixClass(a)  # создаем первую
+        matrix_b = MatrixClass(b)  # создаем вторую
+        result = matrix_a.multiply(matrix_b)  # перемножаем
+        assert to_list(result.data) == expected  # проверяем ответ
+
+    def test_multiply_incompatible(self, MatrixClass):
+        a = [[1, 2], [3, 4], [5, 6]]  # узкая матрица
+        b = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]  # широкая матрица (размеры не подходят)
+        matrix_a = MatrixClass(a)
+        matrix_b = MatrixClass(b)
+        with pytest.raises(ValueError):  # ожидаем, что программа выдаст ошибку ValueError
+            matrix_a.multiply(matrix_b)
+
     def test_divide_compatible(self, MatrixClass):
-        m1 = MatrixClass([[2, 5], [3, 4]]) # делимое
-        m2 = MatrixClass([[1, 2], [3, 4]]) # делитель
-        result = m1.divide(m2) # выполняем деление
-        expected = [[3.5, -0.5], [0.0, 1.0]] # ожидаемый результат
+        m1 = [[2, 5], [3, 4]]  # что делим
+        m2 = [[1, 2], [3, 4]]  # на что делим
+        expected = [[3.5, -0.5], [0.0, 1.0]]  # правильный ответ
+        matrix_1 = MatrixClass(m1)
+        matrix_2 = MatrixClass(m2)
+        result = matrix_1.divide(matrix_2)  # делим
+
         res_list = to_list(result.data)
-        # сверяем результат с эталоном построчно
         for i in range(len(expected)):
+            # сверяем дробные числа через approx (с учетом мелких погрешностей)
             assert res_list[i] == pytest.approx(expected[i])
 
-    # тест на защиту: нельзя делить на неквадратную матрицу
     def test_divide_non_square(self, MatrixClass):
-        m1 = MatrixClass([[1, 2], [3, 4]])
-        m2 = MatrixClass([[1, 2, 3]]) # это не квадрат
-        with pytest.raises(ValueError): # мы ждем, что программа выкинет ошибку ValueError
-            m1.divide(m2)
+        m1 = [[1, 2], [3, 4]]
+        m2 = [[1, 2, 3], [4, 5, 6]]  # нельзя делить на неквадратную матрицу
+        matrix_1 = MatrixClass(m1)
+        matrix_2 = MatrixClass(m2)
+        with pytest.raises(ValueError):  # проверяем, сработает ли защита
+            matrix_1.divide(matrix_2)
 
-    # самый важный тест: деление на «нулевую» (сингулярную) матрицу
     def test_divide_singular(self, MatrixClass):
-        m1 = MatrixClass([[1, 2], [3, 4]])
-        m2 = MatrixClass([[1, 2], [2, 4]]) # у этой матрицы определитель = 0
-        with pytest.raises(ValueError): # проверяем, что код выдает именно ValueError
-            m1.divide(m2)
+        m1 = [[1, 2], [3, 4]]
+        m2 = [[1, 2], [2, 4]]  # у этой матрицы определитель ноль (делить нельзя)
+        matrix_1 = MatrixClass(m1)
+        matrix_2 = MatrixClass(m2)
+        # требуем строго ошибку ValueError для обеих реализаций
+        with pytest.raises(ValueError):
+            matrix_1.divide(matrix_2)
 
-    # тест на некорректные данные при создании
     def test_init_uneven_rows(self, MatrixClass):
-        with pytest.raises(ValueError): # ждем ошибку, если строки разной длины
-            MatrixClass([[1, 2], [3]])
+        data = [[1, 2, 3], [4, 5]]  # матрица с разной длиной строк (ошибка)
+        with pytest.raises(ValueError):  # убеждаемся, что такая матрица не создастся
+            MatrixClass(data)
