@@ -29,3 +29,29 @@ class TestMatrixOperations:
         # проверяем что нельзя создать кривую матрицу с разной длиной строк
         with pytest.raises(ValueError):
             MatrixClass([[1, 2], [3]])
+
+    def test_multiply_compatible(self, MatrixClass):
+    a = MatrixClass([[1, 2, 3], [1, 2, 3]])
+    b = MatrixClass([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    assert to_list(a.multiply(b).data) == [[30, 36, 42], [30, 36, 42]]
+
+    def test_multiply_incompatible(self, MatrixClass):
+    a = MatrixClass([[1, 2], [3, 4], [5, 6]])
+    b = MatrixClass([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    with pytest.raises(ValueError):
+        a.multiply(b)
+
+    def test_divide_compatible(self, MatrixClass):
+    a = MatrixClass([[2, 5], [3, 4]])
+    b = MatrixClass([[1, 2], [3, 4]])
+    result = to_list(a.divide(b).data)
+    expected = [[3.5, -0.5], [0.0, 1.0]]
+    for r_row, e_row in zip(result, expected):
+        for rv, ev in zip(r_row, e_row):
+            assert abs(rv - ev) < 1e-3
+
+    def test_divide_non_square(self, MatrixClass):
+    a = MatrixClass([[1, 2], [3, 4]])
+    b = MatrixClass([[1, 2, 3], [4, 5, 6]])
+    with pytest.raises(ValueError):
+        a.divide(b)
